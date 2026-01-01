@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-// import Login from "../pages/Login";
-// import Register from "../pages/Register";
-// import TaskBoard from "../pages/TaskBoard";
+import Login from "../pages/Auth/Login";
+import Register from "../pages/Auth/Register";
+
 
 const AppRoutes = () => {
   const isAuth = !!localStorage.getItem("access_token");
