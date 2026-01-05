@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useFormik } from "formik";
-import * as Yup from "yup";
 import { Eye, EyeOff } from "lucide-react";
 import {
   Card,
@@ -16,23 +16,12 @@ import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 import { toast } from "sonner";
 import { authService } from "../../services/authService";
-
-// Validation Schema
-const loginSchema = Yup.object({
-  email: Yup.string()
-    .required("Email is required")
-    .email("Invalid email format"),
-  password: Yup.string()
-    .required("Password is required")
-    .min(8, "Password must be at least 8 characters")
-    .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@.#$!%*?&])[A-Za-z\d@.#$!%*?&]{8,15}$/,
-      "Password must contain at least one lowercase character, one uppercase character, one digit and one special character"
-    ),
-});
+import { useAuth } from "../../providers/AuthProvider";
+import { LOGIN_USER_SCHEMA } from "../../utils/validationSchema";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
   const formik = useFormik({
@@ -40,12 +29,13 @@ const Login = () => {
       email: "",
       password: "",
     },
-    validationSchema: loginSchema,
+    validationSchema: LOGIN_USER_SCHEMA,
     onSubmit: async (values, { setSubmitting }) => {
       try {
         const response = await authService.login(values);
         toast.success(response.message || "Login successful!");
-        navigate("/dashboard");
+        await refreshUser();
+        navigate("/");
       } catch (error: any) {
         const errorMessage =
           error.response?.data?.message || "Login failed. Please try again.";
@@ -122,7 +112,7 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 cursor-pointer"
                   tabIndex={-1}
                 >
                   {showPassword ? (
@@ -138,10 +128,10 @@ const Login = () => {
             </div>
           </CardContent>
 
-          <CardFooter className="flex flex-col space-y-4">
+          <CardFooter className="flex flex-col space-y-4 mt-5">
             <Button
               type="submit"
-              className="w-full"
+              className="w-full cursor-pointer"
               disabled={formik.isSubmitting}
             >
               {formik.isSubmitting ? "Signing in..." : "Sign In"}
@@ -151,7 +141,7 @@ const Login = () => {
               Don't have an account?{" "}
               <Link
                 to="/register"
-                className="text-primary font-medium hover:underline"
+                className="text-primary font-medium hover:underline cursor-pointer"
               >
                 Create account
               </Link>

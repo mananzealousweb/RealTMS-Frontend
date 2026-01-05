@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useFormik } from "formik";
-import * as Yup from "yup";
 import { Eye, EyeOff } from "lucide-react";
 import {
   Card,
@@ -16,38 +16,7 @@ import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 import { toast } from "sonner";
 import { authService } from "../../services/authService";
-
-// Validation Schema
-const registerSchema = Yup.object({
-  first_name: Yup.string()
-    .required("First name is required")
-    .max(100, "First name must be at most 100 characters"),
-
-  last_name: Yup.string()
-    .required("Last name is required")
-    .max(100, "Last name must be at most 100 characters"),
-
-  age: Yup.number()
-    .nullable()
-    .min(1, "Age must be a positive number")
-    .typeError("Age must be a number"),
-
-  email: Yup.string()
-    .required("Email is required")
-    .email("Invalid email format"),
-
-  password: Yup.string()
-    .required("Password is required")
-    .min(8, "Password must be at least 8 characters")
-    .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@.#$!%*?&])[A-Za-z\d@.#$!%*?&]{8,15}$/,
-      "Password must contain at least one lowercase character, one uppercase character, one digit and one special character"
-    ),
-
-  confirmPassword: Yup.string()
-    .required("Confirm password is required")
-    .oneOf([Yup.ref("password")], "Passwords must match"),
-});
+import { REGISTER_USER_SCHEMA } from "../../utils/validationSchema";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -63,10 +32,10 @@ const Register = () => {
       password: "",
       confirmPassword: "",
     },
-    validationSchema: registerSchema,
+    validationSchema: REGISTER_USER_SCHEMA,
     onSubmit: async (values, { setSubmitting }) => {
       try {
-        const { confirmPassword, ...registerData } = values;
+        const { ...registerData } = values;
 
         const response = await authService.register({
           ...registerData,
@@ -74,7 +43,7 @@ const Register = () => {
         });
 
         toast.success(response.message || "Registration successful!");
-        navigate("/dashboard");
+        navigate("/");
       } catch (error: any) {
         const errorMessage =
           error.response?.data?.message ||
@@ -277,10 +246,10 @@ const Register = () => {
             </div>
           </CardContent>
 
-          <CardFooter className="flex flex-col space-y-4">
+          <CardFooter className="flex flex-col space-y-4 mt-5">
             <Button
               type="submit"
-              className="w-full"
+              className="w-full cursor-pointer"
               disabled={formik.isSubmitting}
             >
               {formik.isSubmitting ? "Creating account..." : "Create Account"}

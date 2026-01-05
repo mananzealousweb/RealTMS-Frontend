@@ -1,6 +1,5 @@
 import api from "../api/axios";
 
-
 export interface LoginRequest {
   email: string;
   password: string;
@@ -18,7 +17,6 @@ export interface AuthResponse {
   success: boolean;
   message: string;
   access_token: string;
-  refresh_token: string;
   user?: {
     id: number;
     first_name: string;
@@ -35,9 +33,6 @@ export const authService = {
     if (response.data.access_token) {
       localStorage.setItem("access_token", response.data.access_token);
     }
-    if (response.data.refresh_token) {
-      localStorage.setItem("refresh_token", response.data.refresh_token);
-    }
 
     return response.data;
   },
@@ -49,16 +44,14 @@ export const authService = {
     if (response.data.access_token) {
       localStorage.setItem("access_token", response.data.access_token);
     }
-    if (response.data.refresh_token) {
-      localStorage.setItem("refresh_token", response.data.refresh_token);
-    }
 
     return response.data;
   },
 
-  logout: () => {
+  logout: async () => {
+    const response = await api.delete("/auth/logout");
     localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
+    return response.data;
   },
 
   isAuthenticated: (): boolean => {

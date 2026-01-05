@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:7777/api",
+  baseURL: import.meta.env.VITE_NODE_URL,
 });
 
 // Request Interceptor - Add token to every request
@@ -22,8 +22,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     // Check if server sent a new access token
-    const newAccessToken = response.headers["x-access-token"];
-
+    const newAccessToken = response.headers["x-access-token"]?.trim();
     if (newAccessToken) {
       console.log("🔄 Access token refreshed automatically");
       localStorage.setItem("access_token", newAccessToken);
@@ -39,7 +38,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       // Check if server sent a new token in error response
-      const newAccessToken = error.response.headers["x-access-token"];
+      const newAccessToken = error.response.headers["x-access-token"]?.trim();
 
       if (newAccessToken) {
         console.log("🔄 Token refreshed, retrying request...");
@@ -58,7 +57,6 @@ api.interceptors.response.use(
 
         // Clear tokens
         localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
 
         // Redirect to login
         window.location.href = "/login";
