@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Calendar, User, Download, Paperclip } from "lucide-react";
-import { format } from "date-fns";
+import { Calendar, Download, Paperclip } from "lucide-react";
+import moment from "moment";
 
 import {
   Dialog,
@@ -20,6 +20,7 @@ import {
   getPublicFilePath,
 } from "../../../utils/helper";
 import EditablePriorityBadge from "./EditablePriorityBadge";
+import UserAvatar from "./UserAvatar";
 
 interface TaskDetailModalProps {
   isOpen: boolean;
@@ -33,9 +34,9 @@ const TaskDetailModal = ({ isOpen, currentUserId }: TaskDetailModalProps) => {
 
   if (!task) return null;
 
-  const ownerName = task.owner
-    ? `${task.owner.first_name} ${task.owner.last_name}`
-    : "Unknown";
+  // const ownerName = task.owner
+  //   ? `${task.owner.first_name} ${task.owner.last_name}`
+  //   : "Unknown";
 
   const statusLabels = {
     to_do: "To Do",
@@ -74,16 +75,16 @@ const TaskDetailModal = ({ isOpen, currentUserId }: TaskDetailModalProps) => {
                 <Badge variant="outline">{statusLabels[task.status]}</Badge>
 
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <User className="h-4 w-4" />
-                  <span>{ownerName}</span>
+                  <UserAvatar
+                    first={task.owner?.first_name}
+                    last={task.owner?.last_name}
+                  />
                 </div>
 
                 {task.due_date && (
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Calendar className="h-4 w-4" />
-                    <span>
-                      {format(new Date(task.due_date), "MMM dd, yyyy")}
-                    </span>
+                    <span>{moment(task.due_date).format("MMM DD, YYYY")}</span>
                   </div>
                 )}
               </div>

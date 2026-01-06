@@ -2,7 +2,7 @@
 import { useEffect, useState, type DragEvent } from "react";
 import { useFormik } from "formik";
 import { toast } from "sonner";
-import { Upload, X, Trash2, } from "lucide-react";
+import { Upload, X, Trash2 } from "lucide-react";
 
 import { useTaskBoard } from "../TaskBoardContext";
 import {
@@ -32,6 +32,8 @@ import { Card } from "../../../components/ui/card";
 import type { Task, Media } from "../_types";
 import {
   getDisplayFileName,
+  getFileIcon,
+  getImagePreview,
   getMediaIcon,
   getPublicFilePath,
 } from "../../../utils/helper";
@@ -363,22 +365,59 @@ const TaskFormModal = ({ open, onClose, mode, task }: Props) => {
           </Card>
 
           {/* NEW FILES */}
-          {newFiles.map((file, idx) => (
-            <div
-              key={idx}
-              className="flex justify-between border rounded px-3 py-2 text-sm"
-            >
-              {file.name}
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                onClick={() => removeNewFile(idx)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+          {newFiles.length > 0 && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">New Files</label>
+
+              {newFiles.map((file, idx) => {
+                const Icon = getFileIcon(file);
+                const imageUrl = getImagePreview(file);
+
+                return (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg border hover:bg-gray-100 transition"
+                  >
+                    {/* LEFT */}
+                    <div className="flex items-center gap-3 min-w-0">
+                      {/* IMAGE PREVIEW OR ICON */}
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={file.name}
+                          className="h-12 w-12 rounded object-cover border"
+                          onLoad={() => URL.revokeObjectURL(imageUrl)}
+                        />
+                      ) : (
+                        <div className="h-12 w-12 flex items-center justify-center rounded bg-white border">
+                          <Icon className="h-5 w-5 text-gray-500" />
+                        </div>
+                      )}
+
+                      {/* FILE INFO */}
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {file.name}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* REMOVE */}
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => removeNewFile(idx)}
+                      className="cursor-pointer"
+                      title="Remove file"
+                    >
+                      <X className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
+                );
+              })}
             </div>
-          ))}
+          )}
 
           {/* ACTIONS */}
           <div className="flex justify-end gap-2">

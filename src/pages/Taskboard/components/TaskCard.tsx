@@ -2,7 +2,6 @@ import {
   MessageCircle,
   Paperclip,
   Calendar,
-  User,
   Edit,
   Trash2,
   GripVertical,
@@ -18,6 +17,7 @@ import DeleteConfirmDialog from "./DeleteConfirmDialogbox";
 import TaskFormModal from "./TaskFormModal";
 import { useTaskBoard } from "../TaskBoardContext";
 import EditablePriorityBadge from "./EditablePriorityBadge";
+import UserAvatar from "./UserAvatar";
 
 interface TaskCardProps {
   task: Task;
@@ -35,9 +35,9 @@ const TaskCard = ({ task, onClick }: TaskCardProps) => {
   const commentCount = task.comments?.length || 0;
   const fileCount = task.media?.length || 0;
   const isOwner = user?.id === task.user_id;
-  const ownerName = task.owner
-    ? `${task.owner.first_name} ${task.owner.last_name}`
-    : "Unknown";
+  // const ownerName = task.owner
+  //   ? `${task.owner.first_name} ${task.owner.last_name}`
+  //   : "Unknown";
 
   const handleDragStart = (e: React.DragEvent) => {
     if (!isOwner) return;
@@ -66,13 +66,19 @@ const TaskCard = ({ task, onClick }: TaskCardProps) => {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         onClick={() => onClick(task)}
-        className={`p-4 ${
-          isOwner ? "bg-white" : "bg-neutral-50 opacity-80"
-        } transition-shadow hover:shadow-md cursor-pointer`}
+        className={`
+    p-4 transition-shadow
+    ${
+      isOwner
+        ? "bg-white border-l-4 border-indigo-500"
+        : "bg-neutral-50 opacity-85"
+    }
+    hover:shadow-md cursor-pointer
+  `}
       >
         {/* HEADER */}
         <div className="flex items-start justify-between gap-2 mb-2">
-          <div className="flex items-start gap-2 flex-1">
+          <div className="flex items-center gap-2 flex-1">
             {/* DRAG HANDLE (OWNER ONLY) */}
             {isOwner && (
               <div
@@ -94,11 +100,16 @@ const TaskCard = ({ task, onClick }: TaskCardProps) => {
           </div>
 
           {/* ACTION BUTTONS */}
-          {isOwner && (
-            <div
-              className="flex gap-1"
-              onMouseDown={(e) => e.stopPropagation()}
-            >
+
+          <div
+            className="flex gap-1 items-center"
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <UserAvatar
+              first={task.owner?.first_name}
+              last={task.owner?.last_name}
+            />
+            {isOwner && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -107,6 +118,8 @@ const TaskCard = ({ task, onClick }: TaskCardProps) => {
               >
                 <Edit className="h-4 w-4" />
               </Button>
+            )}
+            {isOwner && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -115,8 +128,8 @@ const TaskCard = ({ task, onClick }: TaskCardProps) => {
               >
                 <Trash2 className="h-4 w-4 text-red-600" />
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* PRIORITY */}
@@ -129,10 +142,13 @@ const TaskCard = ({ task, onClick }: TaskCardProps) => {
         </div>
 
         {/* Owner */}
-        <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-          <User className="h-4 w-4" />
-          <span>{ownerName}</span>
-        </div>
+        {/* <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+          <UserAvatar
+            first={task.owner?.first_name}
+            last={task.owner?.last_name}
+          />
+          <span className="truncate">{ownerName}</span>
+        </div> */}
 
         {/* Due Date */}
         {task.due_date && (

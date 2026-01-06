@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { Edit, Trash2, MessageCircle } from "lucide-react";
-import { format } from "date-fns";
+import moment from "moment";
 import { toast } from "sonner";
 
 import { Textarea } from "../../../components/ui/textarea";
@@ -9,6 +9,7 @@ import { Button } from "../../../components/ui/button";
 
 import type { Comment } from "../_types";
 import { useTaskBoard } from "../TaskBoardContext";
+import UserAvatar from "./UserAvatar";
 
 interface CommentSectionProps {
   taskId: number;
@@ -107,12 +108,16 @@ const CommentSection = ({
               <div key={comment.id} className="bg-gray-50 p-3 rounded-lg">
                 <div className="flex items-center justify-between mb-1">
                   <span className="font-medium text-sm">
-                    {comment.author.first_name} {comment.author.last_name}
+                    <UserAvatar
+                      first={comment.author.first_name}
+                      last={comment.author.last_name}
+                    />
+                    {/* {comment.author.first_name} {comment.author.last_name} */}
                   </span>
 
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-500">
-                      {format(new Date(comment.created_at), "MMM dd, HH:mm")}
+                      {moment(comment.created_at).format("MMM DD, HH:mm")}
                     </span>
 
                     {isOwner && (
