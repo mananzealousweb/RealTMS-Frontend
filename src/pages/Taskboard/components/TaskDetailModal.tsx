@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import PriorityBadge from "./PriorityBadge";
 import { Calendar, User, Download, Paperclip } from "lucide-react";
 import { format } from "date-fns";
 
@@ -20,6 +19,7 @@ import {
   getMediaIcon,
   getPublicFilePath,
 } from "../../../utils/helper";
+import EditablePriorityBadge from "./EditablePriorityBadge";
 
 interface TaskDetailModalProps {
   isOpen: boolean;
@@ -65,7 +65,12 @@ const TaskDetailModal = ({ isOpen, currentUserId }: TaskDetailModalProps) => {
             <div className="space-y-6 py-4">
               {/* META */}
               <div className="flex flex-wrap gap-4">
-                <PriorityBadge priority={task.priority} />
+                <EditablePriorityBadge
+                  key={task.priority}
+                  taskId={task.id}
+                  priority={task.priority}
+                  disabled={true}
+                />
                 <Badge variant="outline">{statusLabels[task.status]}</Badge>
 
                 <div className="flex items-center gap-2 text-sm text-gray-600">

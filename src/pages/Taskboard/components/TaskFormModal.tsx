@@ -2,7 +2,7 @@
 import { useEffect, useState, type DragEvent } from "react";
 import { useFormik } from "formik";
 import { toast } from "sonner";
-import { Upload, X, Trash2, Download } from "lucide-react";
+import { Upload, X, Trash2, } from "lucide-react";
 
 import { useTaskBoard } from "../TaskBoardContext";
 import {
@@ -46,7 +46,7 @@ interface Props {
 const ALL_EXTENSIONS = Object.values(ALLOWED_FILE_EXTENSIONS).flat();
 
 const TaskFormModal = ({ open, onClose, mode, task }: Props) => {
-  const { createTask, updateTask, handleDownload } = useTaskBoard();
+  const { createTask, updateTask } = useTaskBoard();
 
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [removedMedia, setRemovedMedia] = useState<string[]>([]);
@@ -315,7 +315,7 @@ const TaskFormModal = ({ open, onClose, mode, task }: Props) => {
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
                           {/* RIGHT */}
-                          <Button
+                          {/* <Button
                             type="button"
                             variant="ghost"
                             size="icon"
@@ -323,7 +323,7 @@ const TaskFormModal = ({ open, onClose, mode, task }: Props) => {
                             className="cursor-pointer"
                           >
                             <Download className="h-4 w-4" />
-                          </Button>
+                          </Button> */}
                         </div>
                       </div>
                     );
