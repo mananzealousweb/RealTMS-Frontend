@@ -105,6 +105,7 @@ const TaskBoard = () => {
       )}
 
       <TaskFormModal
+        key={isFormOpen ? "open" : "closed"}
         open={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         mode="create"

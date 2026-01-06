@@ -13,6 +13,7 @@ import type { Task } from "./_types";
 import { useCommentSocket } from "../../hooks/useCommentSocket";
 import { taskService } from "../../services/taskService";
 import { commentService } from "../../services/commentService";
+import { getDisplayFileName, getPublicFilePath } from "../../utils/helper";
 
 interface TaskBoardContextType {
   // Task State
@@ -32,6 +33,8 @@ interface TaskBoardContextType {
   addComment: (taskId: number, comment: string) => Promise<void>;
   updateComment: (commentId: number, comment: string) => Promise<void>;
   deleteComment: (commentId: number) => Promise<void>;
+
+  handleDownload: (fullPath: string) => Promise<void>;
 
   // Computed Values
   todoTasks: Task[];
@@ -100,6 +103,28 @@ export const TaskBoardProvider: React.FC<{ children: React.ReactNode }> = ({
     await commentService.delete(commentId);
   };
 
+  const handleDownload = async (fullPath: string) => {
+    const publicPath = getPublicFilePath(fullPath);
+    if (!publicPath) return;
+
+    const filename = getDisplayFileName(fullPath);
+    const url = `${import.meta.env.VITE_BACKEND_PATH}/${publicPath}`;
+
+    const res = await fetch(url);
+    const blob = await res.blob();
+
+    const blobUrl = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    URL.revokeObjectURL(blobUrl);
+  };
+
   useTaskSocket({
     onTaskCreated: fetchTasks,
     onTaskUpdated: fetchTasks,
@@ -146,6 +171,7 @@ export const TaskBoardProvider: React.FC<{ children: React.ReactNode }> = ({
         addComment,
         updateComment,
         deleteComment,
+        handleDownload,
         todoTasks,
         inProgressTasks,
         doneTasks,

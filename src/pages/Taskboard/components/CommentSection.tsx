@@ -79,6 +79,17 @@ const CommentSection = ({
     }
   };
 
+  const canEditComment = (comment: Comment) => {
+    if (!comment.created_at) return false;
+
+    const createdAt = new Date(comment.created_at).getTime();
+    const now = Date.now();
+
+    const ALLOWED_MINUTES = 5 * 60 * 1000;
+
+    return now - createdAt <= ALLOWED_MINUTES;
+  };
+
   return (
     <div>
       <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
@@ -106,19 +117,24 @@ const CommentSection = ({
 
                     {isOwner && (
                       <>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => startEdit(comment)}
-                          className="h-8 w-8 cursor-pointer"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        {canEditComment(comment) && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => startEdit(comment)}
+                            className="h-8 w-8 cursor-pointer"
+                            title="Edit comment"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
+
                         <Button
                           size="icon"
                           variant="ghost"
                           onClick={() => handleDeleteComment(comment.id)}
                           className="h-8 w-8 cursor-pointer"
+                          title="Delete comment"
                         >
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>

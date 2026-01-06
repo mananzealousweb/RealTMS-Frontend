@@ -85,14 +85,14 @@ const TaskCard = ({ task, onClick }: TaskCardProps) => {
                 onClick={handleEditClick}
                 className="h-8 w-8"
               >
-                <Edit className="h-4 w-4" />
+                <Edit className="h-4 w-4 cursor-pointer" />
               </Button>
 
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleDeleteClick}
-                className="h-8 w-8"
+                className="h-8 w-8 cursor-pointer"
               >
                 <Trash2 className="h-4 w-4 text-red-600" />
               </Button>
