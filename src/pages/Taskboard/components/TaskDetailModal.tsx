@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import PriorityBadge from "./PriorityBadge";
-import { Calendar, User, Download, Paperclip } from "lucide-react";
-import { format } from "date-fns";
+import { Calendar, Download, Paperclip } from "lucide-react";
+import moment from "moment";
 
 import {
   Dialog,
@@ -15,6 +14,13 @@ import { Separator } from "../../../components/ui/separator";
 import CommentSection from "./CommentSection";
 
 import { useTaskBoard } from "../TaskBoardContext";
+import {
+  getDisplayFileName,
+  getMediaIcon,
+  getPublicFilePath,
+} from "../../../utils/helper";
+import EditablePriorityBadge from "./EditablePriorityBadge";
+import UserAvatar from "./UserAvatar";
 
 interface TaskDetailModalProps {
   isOpen: boolean;
@@ -24,13 +30,13 @@ interface TaskDetailModalProps {
 }
 
 const TaskDetailModal = ({ isOpen, currentUserId }: TaskDetailModalProps) => {
-  const { selectedTask: task, selectTask } = useTaskBoard();
+  const { selectedTask: task, selectTask, handleDownload } = useTaskBoard();
 
   if (!task) return null;
 
-  const ownerName = task.owner
-    ? `${task.owner.first_name} ${task.owner.last_name}`
-    : "Unknown";
+  // const ownerName = task.owner
+  //   ? `${task.owner.first_name} ${task.owner.last_name}`
+  //   : "Unknown";
 
   const statusLabels = {
     to_do: "To Do",
@@ -40,19 +46,6 @@ const TaskDetailModal = ({ isOpen, currentUserId }: TaskDetailModalProps) => {
 
   const handleClose = () => {
     selectTask(null);
-  };
-
-  const handleDownload = (filePath: string) => {
-    const filename = filePath.split("/").pop() || "file";
-    const url = `${import.meta.env.VITE_BACKEND_PATH}/${filePath}`;
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    link.target = "_blank";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
   return (
@@ -73,20 +66,25 @@ const TaskDetailModal = ({ isOpen, currentUserId }: TaskDetailModalProps) => {
             <div className="space-y-6 py-4">
               {/* META */}
               <div className="flex flex-wrap gap-4">
-                <PriorityBadge priority={task.priority} />
+                <EditablePriorityBadge
+                  key={task.priority}
+                  taskId={task.id}
+                  priority={task.priority}
+                  disabled={true}
+                />
                 <Badge variant="outline">{statusLabels[task.status]}</Badge>
 
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <User className="h-4 w-4" />
-                  <span>{ownerName}</span>
+                  <UserAvatar
+                    first={task.owner?.first_name}
+                    last={task.owner?.last_name}
+                  />
                 </div>
 
                 {task.due_date && (
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Calendar className="h-4 w-4" />
-                    <span>
-                      {format(new Date(task.due_date), "MMM dd, yyyy")}
-                    </span>
+                    <span>{moment(task.due_date).format("MMM DD, YYYY")}</span>
                   </div>
                 )}
               </div>
@@ -110,36 +108,62 @@ const TaskDetailModal = ({ isOpen, currentUserId }: TaskDetailModalProps) => {
                   <div>
                     <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
                       <Paperclip className="h-5 w-5" />
-                      Attached Files ({task?.media.length})
+                      Attachments ({task.media.length})
                     </h3>
 
                     <div className="space-y-2">
-                      {task?.media.map((file) => (
-                        <div
-                          key={file.id}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <Paperclip className="h-4 w-4 text-gray-400" />
-                            <div className="min-w-0">
-                              <p className="text-sm font-medium truncate">
-                                {file.path.split("/").pop()}
-                              </p>
-                              <p className="text-xs text-gray-500 capitalize">
-                                {file.type}
-                              </p>
-                            </div>
-                          </div>
+                      {task.media.map((file) => {
+                        const Icon = getMediaIcon(file.type);
+                        const fileUrl =
+                          file.type === "image"
+                            ? `${
+                                import.meta.env.VITE_BACKEND_PATH
+                              }/${getPublicFilePath(file.path)}`
+                            : null;
 
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDownload(file.path)}
+                        return (
+                          <div
+                            key={file.id}
+                            className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg transition"
                           >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
+                            {/* LEFT */}
+                            <div className="flex items-center gap-3 min-w-0">
+                              {/* IMAGE PREVIEW OR ICON */}
+                              {file.type === "image" && fileUrl ? (
+                                <img
+                                  src={fileUrl}
+                                  alt={getDisplayFileName(file.path)}
+                                  className="h-12 w-12 rounded object-cover border"
+                                />
+                              ) : (
+                                <div className="h-12 w-12 flex items-center justify-center rounded bg-white border">
+                                  <Icon className="h-5 w-5 text-gray-500" />
+                                </div>
+                              )}
+
+                              {/* FILE INFO */}
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium truncate">
+                                  {getDisplayFileName(file.path)}
+                                </p>
+                                <p className="text-xs text-gray-500 capitalize">
+                                  {file.type}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* RIGHT */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDownload(file.path)}
+                              className="cursor-pointer"
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </>

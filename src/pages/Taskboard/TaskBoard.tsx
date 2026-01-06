@@ -9,6 +9,7 @@ import { useState } from "react";
 import TaskFormModal from "./components/TaskFormModal";
 import { authService } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
+import UserAvatar from "./components/UserAvatar";
 
 const TaskBoard = () => {
   const { user } = useAuth();
@@ -48,7 +49,7 @@ const TaskBoard = () => {
         <div className="flex items-end gap-1">
           <Button
             onClick={() => setIsFormOpen(true)}
-            className="cursor-pointer"
+            className="cursor-pointer rounded-full"
           >
             <Plus className="h-4 w-4 mr-2" />
             New Task
@@ -59,10 +60,22 @@ const TaskBoard = () => {
               await authService.logout();
               navigate("/login");
             }}
-            className="cursor-pointer bg-red-200 text-red-700 hover:bg-red-600 hover:text-white"
+            className="cursor-pointer bg-red-200 text-red-700 hover:bg-red-600 hover:text-white rounded-full"
           >
             <LogOutIcon className="h-4 w-4 mr-2" />
             Logout
+          </Button>
+          <Button
+            onClick={async () => {
+              navigate("/");
+            }}
+            className="bg-transparent text-transparent hover:bg-transparent hover:text-transparent rounded-2xl"
+          >
+            <UserAvatar
+              first={user?.first_name}
+              last={user?.last_name}
+              className="border-2 border-sky-600 text-3xl"
+            />
           </Button>
         </div>
       </div>
@@ -105,6 +118,7 @@ const TaskBoard = () => {
       )}
 
       <TaskFormModal
+        key={isFormOpen ? "open" : "closed"}
         open={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         mode="create"

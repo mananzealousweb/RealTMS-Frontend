@@ -1,4 +1,5 @@
-import { useState, type DragEvent } from "react";
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useEffect, useState, type DragEvent } from "react";
 import { useFormik } from "formik";
 import { toast } from "sonner";
 import { Upload, X, Trash2 } from "lucide-react";
@@ -29,6 +30,13 @@ import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 
 import type { Task, Media } from "../_types";
+import {
+  getDisplayFileName,
+  getFileIcon,
+  getImagePreview,
+  getMediaIcon,
+  getPublicFilePath,
+} from "../../../utils/helper";
 
 interface Props {
   open: boolean;
@@ -87,6 +95,9 @@ const TaskFormModal = ({ open, onClose, mode, task }: Props) => {
         toast.error(isEdit ? "Failed to update task" : "Failed to create task");
       }
     },
+    validateOnBlur: true,
+    validateOnChange: false,
+    validateOnMount: false,
   });
 
   const validateFiles = (incoming: File[]) => {
@@ -127,6 +138,32 @@ const TaskFormModal = ({ open, onClose, mode, task }: Props) => {
     setRemovedMedia((prev) => [...prev, media.path]);
   };
 
+  useEffect(() => {
+    if (!open) {
+      formik.resetForm();
+      setNewFiles([]);
+      setRemovedMedia([]);
+      setDragActive(false);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (open && isEdit && task) {
+      formik.resetForm({
+        values: {
+          title: task.title || "",
+          description: task.description || "",
+          status: task.status || "to_do",
+          priority: task.priority || "medium",
+          due_date: task.due_date ? task.due_date.slice(0, 16) : "",
+        },
+      });
+
+      setRemovedMedia([]);
+      setNewFiles([]);
+    }
+  }, [open, isEdit, task?.id]);
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-xl">
@@ -136,15 +173,39 @@ const TaskFormModal = ({ open, onClose, mode, task }: Props) => {
 
         <form onSubmit={formik.handleSubmit} className="space-y-5">
           {/* TITLE */}
-          <div>
+          <div className="space-y-1">
             <label className="text-sm font-medium">Title</label>
-            <Input {...formik.getFieldProps("title")} />
+            <Input
+              name="title"
+              value={formik.values.title}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              className={
+                formik.touched.title && formik.errors.title
+                  ? "border-red-500"
+                  : ""
+              }
+            />
+            {formik.touched.title && formik.errors.title && (
+              <p className="text-sm text-red-500">{formik.errors.title}</p>
+            )}
           </div>
 
           {/* DESCRIPTION */}
-          <div>
+          <div className="space-y-1">
             <label className="text-sm font-medium">Description</label>
-            <Textarea {...formik.getFieldProps("description")} rows={4} />
+            <Textarea
+              name="description"
+              value={formik.values.description}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              rows={4}
+            />
+            {formik.touched.description && formik.errors.description && (
+              <p className="text-sm text-red-500">
+                {formik.errors.description}
+              </p>
+            )}
           </div>
 
           {/* STATUS + PRIORITY */}
@@ -181,32 +242,95 @@ const TaskFormModal = ({ open, onClose, mode, task }: Props) => {
           </div>
 
           {/* DUE DATE */}
-          <Input type="datetime-local" {...formik.getFieldProps("due_date")} />
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Due Date</label>
+            <Input
+              type="datetime-local"
+              name="due_date"
+              value={formik.values.due_date}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+            />
+            {formik.touched.due_date && formik.errors.due_date && (
+              <p className="text-sm text-red-500">{formik.errors.due_date}</p>
+            )}
+          </div>
 
           {/* EXISTING MEDIA (EDIT ONLY) */}
           {isEdit && task?.media && task?.media?.length > 0 && (
-            <div className="space-y-2">
+            <div className="space-y-3">
               <label className="text-sm font-medium">Existing Files</label>
-              {task.media
-                .filter((m) => !removedMedia.includes(m.path))
-                .map((media) => (
-                  <div
-                    key={media.id}
-                    className="flex items-center justify-between border rounded px-3 py-2 text-sm"
-                  >
-                    <span className="overflow-auto">
-                      {media.path.split("/").pop()}
-                    </span>
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => markMediaForRemoval(media)}
-                    >
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
-                  </div>
-                ))}
+
+              <div className="space-y-2">
+                {task.media
+                  .filter((m) => !removedMedia.includes(m.path))
+                  .map((media) => {
+                    const Icon = getMediaIcon(media.type);
+                    const imageUrl =
+                      media.type === "image"
+                        ? `${
+                            import.meta.env.VITE_BACKEND_PATH
+                          }/${getPublicFilePath(media.path)}`
+                        : null;
+
+                    return (
+                      <div
+                        key={media.id}
+                        className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg border hover:bg-gray-100 transition"
+                      >
+                        {/* LEFT */}
+                        <div className="flex items-center gap-3 min-w-0">
+                          {/* IMAGE PREVIEW OR ICON */}
+                          {media.type === "image" && imageUrl ? (
+                            <img
+                              src={imageUrl}
+                              alt={getDisplayFileName(media.path)}
+                              className="h-12 w-12 rounded object-cover border"
+                            />
+                          ) : (
+                            <div className="h-12 w-12 flex items-center justify-center rounded bg-white border">
+                              <Icon className="h-5 w-5 text-gray-500" />
+                            </div>
+                          )}
+
+                          {/* FILE INFO */}
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">
+                              {getDisplayFileName(media.path)}
+                            </p>
+                            <p className="text-xs text-gray-500 capitalize">
+                              {media.type}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex">
+                          {/* REMOVE */}
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => markMediaForRemoval(media)}
+                            className="cursor-pointer"
+                            title="Remove file"
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                          {/* RIGHT */}
+                          {/* <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDownload(media?.path)}
+                            className="cursor-pointer"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button> */}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
             </div>
           )}
 
@@ -241,29 +365,71 @@ const TaskFormModal = ({ open, onClose, mode, task }: Props) => {
           </Card>
 
           {/* NEW FILES */}
-          {newFiles.map((file, idx) => (
-            <div
-              key={idx}
-              className="flex justify-between border rounded px-3 py-2 text-sm"
-            >
-              {file.name}
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                onClick={() => removeNewFile(idx)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+          {newFiles.length > 0 && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">New Files</label>
+
+              {newFiles.map((file, idx) => {
+                const Icon = getFileIcon(file);
+                const imageUrl = getImagePreview(file);
+
+                return (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg border hover:bg-gray-100 transition"
+                  >
+                    {/* LEFT */}
+                    <div className="flex items-center gap-3 min-w-0">
+                      {/* IMAGE PREVIEW OR ICON */}
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={file.name}
+                          className="h-12 w-12 rounded object-cover border"
+                          onLoad={() => URL.revokeObjectURL(imageUrl)}
+                        />
+                      ) : (
+                        <div className="h-12 w-12 flex items-center justify-center rounded bg-white border">
+                          <Icon className="h-5 w-5 text-gray-500" />
+                        </div>
+                      )}
+
+                      {/* FILE INFO */}
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {file.name}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* REMOVE */}
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => removeNewFile(idx)}
+                      className="cursor-pointer"
+                      title="Remove file"
+                    >
+                      <X className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
+                );
+              })}
             </div>
-          ))}
+          )}
 
           {/* ACTIONS */}
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onClose}>
+            <Button
+              variant="outline"
+              type="button"
+              onClick={onClose}
+              className="cursor-pointer"
+            >
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" className="cursor-pointer">
               {isEdit ? "Update Task" : "Create Task"}
             </Button>
           </div>

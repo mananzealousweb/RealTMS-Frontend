@@ -59,7 +59,7 @@ export const CREATE_TASK_SCHEMA = Yup.object({
 });
 
 export const UPDATE_TASK_SCHEMA = Yup.object({
-  title: Yup.string().max(255),
+  title: Yup.string().required("Title is required").max(255),
   description: Yup.string().nullable(),
   status: Yup.string().oneOf(["to_do", "in_progress", "done"]),
   priority: Yup.string().oneOf(["low", "medium", "high"]),

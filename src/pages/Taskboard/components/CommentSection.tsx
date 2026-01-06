@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { Edit, Trash2, MessageCircle } from "lucide-react";
-import { format } from "date-fns";
+import moment from "moment";
 import { toast } from "sonner";
 
 import { Textarea } from "../../../components/ui/textarea";
@@ -9,6 +9,7 @@ import { Button } from "../../../components/ui/button";
 
 import type { Comment } from "../_types";
 import { useTaskBoard } from "../TaskBoardContext";
+import UserAvatar from "./UserAvatar";
 
 interface CommentSectionProps {
   taskId: number;
@@ -79,6 +80,17 @@ const CommentSection = ({
     }
   };
 
+  const canEditComment = (comment: Comment) => {
+    if (!comment.created_at) return false;
+
+    const createdAt = new Date(comment.created_at).getTime();
+    const now = Date.now();
+
+    const ALLOWED_MINUTES = 5 * 60 * 1000;
+
+    return now - createdAt <= ALLOWED_MINUTES;
+  };
+
   return (
     <div>
       <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
@@ -96,29 +108,38 @@ const CommentSection = ({
               <div key={comment.id} className="bg-gray-50 p-3 rounded-lg">
                 <div className="flex items-center justify-between mb-1">
                   <span className="font-medium text-sm">
-                    {comment.author.first_name} {comment.author.last_name}
+                    <UserAvatar
+                      first={comment.author.first_name}
+                      last={comment.author.last_name}
+                    />
+                    {/* {comment.author.first_name} {comment.author.last_name} */}
                   </span>
 
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-500">
-                      {format(new Date(comment.created_at), "MMM dd, HH:mm")}
+                      {moment(comment.created_at).format("MMM DD, HH:mm")}
                     </span>
 
                     {isOwner && (
                       <>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => startEdit(comment)}
-                          className="h-8 w-8 cursor-pointer"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        {canEditComment(comment) && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => startEdit(comment)}
+                            className="h-8 w-8 cursor-pointer"
+                            title="Edit comment"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
+
                         <Button
                           size="icon"
                           variant="ghost"
                           onClick={() => handleDeleteComment(comment.id)}
                           className="h-8 w-8 cursor-pointer"
+                          title="Delete comment"
                         >
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
