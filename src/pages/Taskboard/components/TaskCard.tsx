@@ -5,6 +5,7 @@ import {
   Edit,
   Trash2,
   GripVertical,
+  ClockAlertIcon,
 } from "lucide-react";
 
 import moment from "moment";
@@ -18,6 +19,7 @@ import TaskFormModal from "./TaskFormModal";
 import { useTaskBoard } from "../TaskBoardContext";
 import EditablePriorityBadge from "./EditablePriorityBadge";
 import UserAvatar from "./UserAvatar";
+import { dueDatePassed } from "../../../utils/helper";
 
 interface TaskCardProps {
   task: Task;
@@ -35,6 +37,7 @@ const TaskCard = ({ task, onClick }: TaskCardProps) => {
   const commentCount = task.comments?.length || 0;
   const fileCount = task.media?.length || 0;
   const isOwner = user?.id === task.user_id;
+  const isOverdue = dueDatePassed(task.due_date);
   // const ownerName = task.owner
   //   ? `${task.owner.first_name} ${task.owner.last_name}`
   //   : "Unknown";
@@ -152,9 +155,22 @@ const TaskCard = ({ task, onClick }: TaskCardProps) => {
 
         {/* Due Date */}
         {task.due_date && (
-          <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-            <Calendar className="h-4 w-4" />
-            <span>{moment(task.due_date).format("MMM DD, YYYY")}</span>
+          <div className="mb-3">
+            <div
+              className={`flex items-center gap-2 text-sm ${
+                isOverdue ? "text-red-600 font-medium" : "text-gray-600"
+              }`}
+            >
+              <Calendar className="h-4 w-4" />
+              <span>{moment(task.due_date).format("MMM DD, YYYY, HH:mm")}</span>
+            </div>
+
+            {isOverdue && (
+              <div className="mt-1 flex items-center gap-1 text-xs text-red-600">
+                <ClockAlertIcon className="h-4 w-4" />
+                <span>Due date has passed</span>
+              </div>
+            )}
           </div>
         )}
 

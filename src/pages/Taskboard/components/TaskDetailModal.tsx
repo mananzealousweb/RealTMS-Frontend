@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Calendar, Download, Paperclip } from "lucide-react";
+import { Calendar, ClockAlertIcon, Download, Paperclip } from "lucide-react";
 import moment from "moment";
 
 import {
@@ -15,6 +15,7 @@ import CommentSection from "./CommentSection";
 
 import { useTaskBoard } from "../TaskBoardContext";
 import {
+  dueDatePassed,
   getDisplayFileName,
   getMediaIcon,
   getPublicFilePath,
@@ -37,7 +38,7 @@ const TaskDetailModal = ({ isOpen, currentUserId }: TaskDetailModalProps) => {
   // const ownerName = task.owner
   //   ? `${task.owner.first_name} ${task.owner.last_name}`
   //   : "Unknown";
-
+  const isOverdue = dueDatePassed(task.due_date);
   const statusLabels = {
     to_do: "To Do",
     in_progress: "In Progress",
@@ -82,10 +83,25 @@ const TaskDetailModal = ({ isOpen, currentUserId }: TaskDetailModalProps) => {
                 </div>
 
                 {task.due_date && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Calendar className="h-4 w-4" />
-                    <span>{moment(task.due_date).format("MMM DD, YYYY")}</span>
-                  </div>
+                  <>
+                    <div
+                      className={`flex items-center gap-2 text-sm ${
+                        isOverdue ? "text-red-600 font-medium" : "text-gray-600"
+                      }`}
+                    >
+                      <Calendar className="h-4 w-4" />
+                      <span>
+                        {moment(task.due_date).format("MMM DD, YYYY, HH:mm")}
+                      </span>
+                    </div>
+
+                    {isOverdue && (
+                      <div className="mt-1 flex items-center gap-1 text-xs text-red-600">
+                        <ClockAlertIcon className="h-4 w-4" />
+                        <span>Due date has passed</span>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 

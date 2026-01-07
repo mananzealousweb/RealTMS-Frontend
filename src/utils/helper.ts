@@ -5,6 +5,7 @@ import {
   FileArchiveIcon,
 } from "lucide-react";
 import { AVATAR_COLORS } from "./constant";
+import moment from "moment";
 
 export const getDisplayFileName = (fullPath: string) => {
   const normalized = fullPath.replace(/\\/g, "/");
@@ -63,4 +64,18 @@ export const hashString = (str: string) => {
   }
 
   return Math.abs(hash);
+};
+
+export const dueDatePassed = (
+  dueDate?: string | Date | null
+): boolean | null => {
+  if (!dueDate) return null;
+
+  const dueMoment = moment(dueDate);
+
+  return dueMoment.isBefore(moment());
+};
+
+export const toLocalDatetime = (date: string | Date) => {
+  return moment(date).local().format("YYYY-MM-DDTHH:mm");
 };

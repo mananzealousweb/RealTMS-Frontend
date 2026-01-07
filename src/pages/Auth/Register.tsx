@@ -17,9 +17,11 @@ import { Button } from "../../components/ui/button";
 import { toast } from "sonner";
 import { authService } from "../../services/authService";
 import { REGISTER_USER_SCHEMA } from "../../utils/validationSchema";
+import { useAuth } from "../../providers/AuthProvider";
 
 const Register = () => {
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -43,6 +45,7 @@ const Register = () => {
         });
 
         toast.success(response.message || "Registration successful!");
+        await refreshUser();
         navigate("/");
       } catch (error: any) {
         const errorMessage =
