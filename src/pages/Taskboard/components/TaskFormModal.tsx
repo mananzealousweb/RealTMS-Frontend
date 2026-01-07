@@ -36,6 +36,7 @@ import {
   getImagePreview,
   getMediaIcon,
   getPublicFilePath,
+  toLocalDatetime,
 } from "../../../utils/helper";
 
 interface Props {
@@ -63,7 +64,7 @@ const TaskFormModal = ({ open, onClose, mode, task }: Props) => {
       description: task?.description || "",
       status: task?.status || "to_do",
       priority: task?.priority || "medium",
-      due_date: task?.due_date ? task.due_date.slice(0, 16) : "",
+      due_date: task?.due_date ? toLocalDatetime(task.due_date) : "",
     },
     validationSchema: isEdit ? UPDATE_TASK_SCHEMA : CREATE_TASK_SCHEMA,
     onSubmit: async (values) => {
